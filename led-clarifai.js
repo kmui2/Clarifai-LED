@@ -27,6 +27,11 @@ axios.get('http://104.131.24.33:8003/leds')
   rainbow = response.data.rainbow;
   board.on("ready", function() {
 
+    button = new five.Button(2);
+    
+    board.repl.inject({
+      button: button
+    });
     
     lcd = new five.LCD({
       // LCD pin name  RS  EN  DB4 DB5 DB6 DB7
@@ -47,15 +52,32 @@ axios.get('http://104.131.24.33:8003/leds')
       lcd: lcd
     });
 
+    // "down" the button is pressed
+    button.on("down", function() {
+      console.log("down");
+      axios.get('http://104.131.24.33:8003/leds')
+      .then(function (response) {
+        console.log(response);
+        rainbow = response.data.rainbow;
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
+    });
 
     var rgb = new five.Led.RGB([6, 5, 3]);
     var index = 0;
     this.loop(3000, function() {
       lcd.clear().cursor(0, 0).print('#'+rainbow[index]);
-      rgb.color(rainbow[index++]);
-      if (index === rainbow.length) {
-        index = 0;
+      if (rainbow && rainbow[index]) {
+        rgb.color(rainbow[index++]);
+        if (index === rainbow.length) {
+          index = 0;
+        }
       }
+      
+      
+
     });
   });
 })
